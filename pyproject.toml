@@ -7,6 +7,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.14"
+pandas = "^3.0.2"
+openpyxl = "^3.1.5"
+streamlit = "^1.56.0"
+python-docx = "^1.2.0"
+holidays = "^0.95"
+docxtpl = "^0.20.2"
 
 
 [build-system]
