@@ -1,47 +1,31 @@
 import pandas as pd
-import sys
 import os
-# Добавили импорт generate_word_permits
-from src.logic import calculate_maintenance_balanced, export_to_excel, generate_word_permits
+from src.logic import calculate_maintenance_balanced, export_to_excel, generate_word_reports
 
-# --- НАСТРОЙКИ ---
-TARGET_YEAR = 2023  # Поставил 2024, так как мы планировали на него
-INPUT_FILE = "data/equipment.xlsx"
-# Теперь файл будет сохраняться внутри папки output
-OUTPUT_FILE = "output/График_ППР_ESMR.xlsx"
+TARGET_YEAR = 2026
+INPUT_FILE = f"output/График_ППР_{TARGET_YEAR - 1}_г.xlsx"
+OUTPUT_FILE = f"output/График_ППР_{TARGET_YEAR}_г.xlsx"
 
 
 def run():
-    print("--- Запуск системы ESMR ---", flush=True)
+    print(f"--- ESMR: Запуск планирования на {TARGET_YEAR} год ---")
+    if not os.path.exists(INPUT_FILE):
+        print(f"Файл {INPUT_FILE} не найден!")
+        return
 
     try:
-        # Проверка наличия папки output
-        if not os.path.exists('output'):
-            os.makedirs('output')
+        input_df = pd.read_excel(INPUT_FILE, sheet_name='Годовой график')
+        schedule = calculate_maintenance_balanced(input_df, TARGET_YEAR)
 
-        input_df = pd.read_excel(INPUT_FILE)
-
-        if input_df.empty:
-            print(f"ВНИМАНИЕ: Файл {INPUT_FILE} пуст!", flush=True)
-            return
-
-        print(f"Загружено строк: {len(input_df)}", flush=True)
-
-        # 1. Расчет
-        schedule = calculate_maintenance_balanced(input_df, target_year=TARGET_YEAR)
-
-        # 2. Экспорт в Excel
+        # 1. Экспорт Excel (Марка возвращена, Содержание убрано)
         export_to_excel(schedule, OUTPUT_FILE)
-        print(f"Excel-файл готов: {OUTPUT_FILE}", flush=True)
 
-        # 3. ГЕНЕРАЦИЯ НАРЯДОВ WORD
-        # Эта функция создаст файлы .docx в папке output/Наряды_Допуски
-        generate_word_permits(schedule)
+        # 2. Генерация Word (Ведомости работ отдельно)
+        generate_word_reports(schedule)
 
-        print(f"ГОТОВО! Все документы (Excel и Word) в папке /output", flush=True)
-
+        print(f"УСПЕХ: Отчеты в /output")
     except Exception as e:
-        print(f"КРИТИЧЕСКАЯ ОШИБКА: {e}", flush=True)
+        print(f"Ошибка: {e}")
 
 
 if __name__ == "__main__":
